@@ -1,0 +1,2 @@
+# Sample proxies
+http://user1:pass1@123.123.123.123:8080
