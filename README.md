@@ -70,4 +70,3 @@ This project is for educational purposes only. Always respect websites' terms of
 ## License
 
 MIT
-```
