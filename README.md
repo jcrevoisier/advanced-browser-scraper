@@ -71,17 +71,3 @@ This project is for educational purposes only. Always respect websites' terms of
 
 MIT
 ```
-
-## Step 6: Commit and Push to GitHub
-
-Now let's commit and push these changes to GitHub:
-
-```bash
-# Add all changes
-git add .
-
-# Commit changes
-git commit -m "Convert project to TypeScript for improved type safety and maintainability"
-
-# Push to GitHub
-git push origin main
