@@ -1,9 +1,12 @@
-require('dotenv').config();
-const fs = require('fs');
-const config = require('../config/config');
-const Scraper = require('./scraper');
+import dotenv from 'dotenv';
+import fs from 'fs';
+import config from '../config/config';
+import Scraper from './scraper';
+import { Product } from './types';
 
-async function main() {
+dotenv.config();
+
+async function main(): Promise<void> {
   console.log('Starting advanced browser scraper...');
   console.log(`Target: Amazon search for "${config.target.searchTerm}"`);
   

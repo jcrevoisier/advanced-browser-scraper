@@ -1,7 +1,16 @@
-const { default: axios } = require('axios');
-require('dotenv').config();
+import axios from 'axios';
+import { Page } from 'playwright';
+import { CaptchaResponse } from './types';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class CaptchaSolver {
+  private apiKey: string | undefined;
+  private service: string;
+  private baseUrl: string;
+  private resultUrl: string;
+
   constructor() {
     this.apiKey = process.env.CAPTCHA_API_KEY;
     this.service = process.env.CAPTCHA_SERVICE || '2captcha';
@@ -9,9 +18,14 @@ class CaptchaSolver {
     this.resultUrl = 'https://2captcha.com/res.php';
   }
 
-  async solveCaptcha(page, selector) {
+  async solveCaptcha(page: Page, selector: string): Promise<string | null> {
     try {
       console.log('CAPTCHA detected, attempting to solve...');
+      
+      if (!this.apiKey) {
+        console.error('CAPTCHA API key not found in environment variables');
+        return null;
+      }
       
       // Take screenshot of the CAPTCHA
       const captchaElement = await page.$(selector);
@@ -23,7 +37,7 @@ class CaptchaSolver {
       const screenshot = await captchaElement.screenshot({ encoding: 'base64' });
       
       // Send CAPTCHA to solving service
-      const response = await axios.post(this.baseUrl, {
+      const response = await axios.post<CaptchaResponse>(this.baseUrl, {
         key: this.apiKey,
         method: 'base64',
         body: screenshot,
@@ -45,7 +59,7 @@ class CaptchaSolver {
       while (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
         
-        const resultResponse = await axios.get(this.resultUrl, {
+        const resultResponse = await axios.get<CaptchaResponse>(this.resultUrl, {
           params: {
             key: this.apiKey,
             action: 'get',
@@ -76,4 +90,4 @@ class CaptchaSolver {
   }
 }
 
-module.exports = new CaptchaSolver();
+export default new CaptchaSolver();

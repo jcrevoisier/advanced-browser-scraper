@@ -1,5 +1,10 @@
+import { Page } from 'playwright';
+import { HumanBehaviorConfig, ClickableElement } from './types';
+
 class HumanBehavior {
-  constructor(config) {
+  private config: HumanBehaviorConfig;
+
+  constructor(config?: HumanBehaviorConfig) {
     this.config = config || {
       scrollEnabled: true,
       randomClicks: true,
@@ -9,14 +14,14 @@ class HumanBehavior {
     };
   }
 
-  async randomDelay() {
+  async randomDelay(): Promise<void> {
     const delay = Math.floor(
       Math.random() * (this.config.maxDelay - this.config.minDelay) + this.config.minDelay
     );
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 
-  async simulateHumanBehavior(page) {
+  async simulateHumanBehavior(page: Page): Promise<void> {
     // Random delay before starting
     await this.randomDelay();
 
@@ -31,7 +36,7 @@ class HumanBehavior {
     }
   }
 
-  async simulateScrolling(page) {
+  async simulateScrolling(page: Page): Promise<void> {
     console.log('Simulating human scrolling behavior...');
     
     // Get page height
@@ -73,17 +78,17 @@ class HumanBehavior {
     }
   }
 
-  async simulateRandomClicks(page) {
+  async simulateRandomClicks(page: Page): Promise<void> {
     console.log('Simulating random clicks...');
     
     // Find non-critical elements to click (like images, empty space, etc.)
     const clickableElements = await page.evaluate(() => {
-      const elements = [];
+      const elements: Array<{ x: number, y: number }> = [];
       
       // Find some non-interactive elements to click
       document.querySelectorAll('div, span, p, img').forEach(el => {
         // Skip elements with event listeners or links
-        if (el.onclick || el.closest('a, button, input, select, textarea')) {
+        if ((el as any).onclick || el.closest('a, button, input, select, textarea')) {
           return;
         }
         
@@ -110,4 +115,4 @@ class HumanBehavior {
   }
 }
 
-module.exports = HumanBehavior;
+export default HumanBehavior;

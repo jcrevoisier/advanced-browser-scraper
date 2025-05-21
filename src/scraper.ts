@@ -1,23 +1,28 @@
-const { chromium } = require('playwright-extra');
-const stealth = require('puppeteer-extra-plugin-stealth')();
-const randomUseragent = require('random-useragent');
-const proxyManager = require('./proxy-manager');
-const captchaSolver = require('./captcha-solver');
-const HumanBehavior = require('./human-behavior');
+import { chromium, Browser, Page } from 'playwright-extra';
+import { PlaywrightExtraPlugin } from 'playwright-extra/dist/plugin';
+import stealth from 'puppeteer-extra-plugin-stealth';
+import randomUseragent from 'random-useragent';
+import proxyManager from './proxy-manager';
+import captchaSolver from './captcha-solver';
+import HumanBehavior from './human-behavior';
+import { AppConfig, Product } from './types';
 
 class Scraper {
-  constructor(config) {
+  private config: AppConfig;
+  private browser: Browser | null = null;
+  private page: Page | null = null;
+  private requestCount: number = 0;
+  private humanBehavior: HumanBehavior;
+  
+  constructor(config: AppConfig) {
     this.config = config;
-    this.browser = null;
-    this.page = null;
-    this.requestCount = 0;
     this.humanBehavior = new HumanBehavior(config.humanBehavior);
     
     // Add stealth plugin
-    chromium.use(stealth);
+    chromium.use(stealth() as unknown as PlaywrightExtraPlugin);
   }
 
-  async initialize() {
+  async initialize(): Promise<void> {
     console.log('Initializing scraper...');
     
     // Load proxies if enabled
@@ -29,7 +34,7 @@ class Scraper {
     await this.launchBrowser();
   }
 
-  async launchBrowser() {
+  async launchBrowser(): Promise<void> {
     let proxyServer = null;
     
     // Get proxy if enabled
@@ -66,7 +71,7 @@ class Scraper {
     });
   }
 
-  async rotateProxyIfNeeded() {
+  async rotateProxyIfNeeded(): Promise<void> {
     this.requestCount++;
     
     if (this.config.proxy.enabled && 
@@ -74,15 +79,17 @@ class Scraper {
       console.log('Rotating proxy...');
       
       // Close current browser
-      await this.browser.close();
+      if (this.browser) {
+        await this.browser.close();
+      }
       
       // Launch new browser with new proxy
       await this.launchBrowser();
     }
   }
 
-  async handleCaptcha() {
-    if (!this.config.captcha.enabled) return true;
+  async handleCaptcha(): Promise<boolean> {
+    if (!this.config.captcha.enabled || !this.page) return true;
     
     // Check if CAPTCHA is present
     const captchaExists = await this.page.$(this.config.captcha.selector);
@@ -113,8 +120,12 @@ class Scraper {
     return !captchaStillExists;
   }
 
-    async scrapeAmazonSearch() {
+  async scrapeAmazonSearch(): Promise<Product[]> {
     try {
+      if (!this.page) {
+        throw new Error('Browser page not initialized');
+      }
+      
       const searchUrl = `${this.config.target.url}${encodeURIComponent(this.config.target.searchTerm)}`;
       console.log(`Navigating to: ${searchUrl}`);
       
@@ -135,7 +146,7 @@ class Scraper {
       console.log('Extracting product data...');
       const products = await this.page.evaluate((selectors, maxResults) => {
         const productElements = Array.from(document.querySelectorAll(selectors.resultsSelector))
-          .filter(el => el.getAttribute('data-asin') && el.getAttribute('data-asin').length > 0);
+          .filter(el => el.getAttribute('data-asin') && el.getAttribute('data-asin')!.length > 0);
         
         return productElements.slice(0, maxResults).map(el => {
           // Extract product details
@@ -145,9 +156,9 @@ class Scraper {
           const asin = el.getAttribute('data-asin');
           
           return {
-            title: titleElement ? titleElement.innerText.trim() : 'N/A',
-            price: priceElement ? priceElement.innerText.trim() : 'N/A',
-            rating: ratingElement ? ratingElement.innerText.trim() : 'N/A',
+            title: titleElement ? titleElement.textContent?.trim() || 'N/A' : 'N/A',
+            price: priceElement ? priceElement.textContent?.trim() || 'N/A' : 'N/A',
+            rating: ratingElement ? ratingElement.textContent?.trim() || 'N/A' : 'N/A',
             asin: asin || 'N/A',
             url: asin ? `https://www.amazon.com/dp/${asin}` : '#',
           };
@@ -162,7 +173,7 @@ class Scraper {
     }
   }
 
-  async close() {
+  async close(): Promise<void> {
     if (this.browser) {
       await this.browser.close();
       console.log('Browser closed');
@@ -170,5 +181,4 @@ class Scraper {
   }
 }
 
-module.exports = Scraper;
-
+export default Scraper;

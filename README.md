@@ -1,14 +1,15 @@
 # Advanced Browser Scraper
 
-A sophisticated web scraper built with Playwright including:
+A sophisticated web scraper built with TypeScript and Playwright including:
 
 - Browser automation with stealth mode
-- Proxy rotation (residential + datacenter)
+- Proxy rotation
 - CAPTCHA solving (2Captcha integration)
 - Human behavior emulation (scrolling, clicking, random delays)
 
 ## Features
 
+- **TypeScript Implementation**: Type-safe code with interfaces for better maintainability
 - **Browser Automation**: Uses Playwright with stealth plugins to avoid detection
 - **Proxy Rotation**: Automatically rotates between proxies to prevent IP blocking
 - **CAPTCHA Solving**: Integrates with 2Captcha service to solve CAPTCHAs automatically
@@ -50,13 +51,16 @@ CAPTCHA_SERVICE=2captcha
 http://username:password@host:port
 ```
 
-3. Adjust settings in `config/config.js` as needed.
+3. Adjust settings in `config/config.ts` as needed.
 
 ## Usage
 
 ```bash
+# Build the project
+npm run build
+
 # Run the scraper
-node src/index.js
+npm start
 ```
 
 ## Disclaimer
@@ -68,9 +72,16 @@ This project is for educational purposes only. Always respect websites' terms of
 MIT
 ```
 
-## Running the Project
+## Step 6: Commit and Push to GitHub
 
-To run the project, you would execute:
+Now let's commit and push these changes to GitHub:
 
 ```bash
-node src/index.js
+# Add all changes
+git add .
+
+# Commit changes
+git commit -m "Convert project to TypeScript for improved type safety and maintainability"
+
+# Push to GitHub
+git push origin main

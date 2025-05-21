@@ -1,4 +1,6 @@
-module.exports = {
+import { AppConfig } from '../src/types';
+
+const config: AppConfig = {
   // Browser settings
   browser: {
     headless: false,
@@ -39,3 +41,5 @@ module.exports = {
     scrollDepth: 0.8, // Scroll 80% of the page
   }
 };
+
+export default config;

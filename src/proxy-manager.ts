@@ -1,14 +1,17 @@
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
+import { ProxyInfo } from './types';
 
 class ProxyManager {
+  private proxies: string[] = [];
+  private currentProxyIndex: number = 0;
+  private proxyFilePath: string;
+
   constructor() {
-    this.proxies = [];
-    this.currentProxyIndex = 0;
     this.proxyFilePath = path.join(__dirname, '../proxies/proxies.txt');
   }
 
-  async loadProxies() {
+  async loadProxies(): Promise<void> {
     try {
       const data = await fs.readFile(this.proxyFilePath, 'utf8');
       this.proxies = data
@@ -27,7 +30,7 @@ class ProxyManager {
     }
   }
 
-  getNextProxy() {
+  getNextProxy(): string | null {
     if (this.proxies.length === 0) {
       return null;
     }
@@ -37,7 +40,7 @@ class ProxyManager {
     return proxy;
   }
 
-  formatProxyForPlaywright(proxyString) {
+  formatProxyForPlaywright(proxyString: string | null): ProxyInfo | null {
     if (!proxyString) return null;
     
     try {
@@ -63,4 +66,4 @@ class ProxyManager {
   }
 }
 
-module.exports = new ProxyManager();
+export default new ProxyManager();
